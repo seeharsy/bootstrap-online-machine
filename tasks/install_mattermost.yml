@@ -1,0 +1,53 @@
+---
+- name: Install Mattermost (Debian based)
+  block:
+    - name: Get Mattermost setup-repo.sh
+      get_url:
+        url: "{{ mattermost_deb_script }}"
+        dest: "/tmp/setup-repo.sh"
+        mode: '0755'
+        owner: "{{ host_user }}"
+        group: "{{ host_user }}"
+
+    - name: Run setup-repo.sh
+      become: true
+      shell:
+        cmd: "UPDATE_GPG_KEY=yes /tmp/setup-repo.sh"
+
+    - name: Install Mattermost Desktop
+      become: true
+      apt:
+        name: mattermost-desktop
+        state: present
+
+    - name: Clean up setup-repo.sh
+      file:
+        path: "/tmp/setup-repo.sh"
+        state: absent
+  when: ansible_os_family == "Debian"
+  tags:
+    - always
+
+# Mattermost doesn't support automatic updates for .rpm
+# packages. Updates have to be done manually.
+- name: Install Mattermost (Fedora based)
+  block:
+    - name: Pull Mattermost .rpm
+      get_url:
+        url: "{{ mattermost_rpm }}"
+        dest: "/tmp/mattermost-desktop-5.11.0-linux-x86_64.rpm"
+
+    - name: Dnf install .rpm
+      become: true
+      dnf:
+        name: "/tmp/mattermost-desktop-5.11.0-linux-x86_64.rpm"
+        state: present
+        disable_gpg_check: true
+
+    - name: Clean up rpm
+      file:
+        path: "/tmp/mattermost-desktop-5.11.0-linux-x86_64.rpm"
+        state: absent
+  when: ansible_os_family == "RedHat"
+  tags:
+    - always

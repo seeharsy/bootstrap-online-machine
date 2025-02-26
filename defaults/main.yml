@@ -1,0 +1,78 @@
+---
+# defaults file for bootstrap-online-machine
+# defaults/main.yml
+packages_common:
+  - vim
+  - terminator
+  - pre-commit
+  - shellcheck
+  - wireshark
+  - net-tools
+  - tmate
+  - htop
+  - ca-certificates
+  - chrony
+  - curl
+  - wget
+  - git
+  - git-lfs
+  - gnome-screenshot
+  - python3
+  - ansible-core
+  - pass
+  - jq
+  - tmux
+  - neovim
+  - python3-neovim
+  - w3m
+  - stow
+
+packages_debian:
+  - software-properties-common
+  - apt-transport-https
+  - gpg
+  - libxss1
+  - libindicator7
+  - libnss3-tools
+  - bind9-utils
+  - wireguard
+  - network-manager
+  - pcscd
+
+packages_fedora:
+  - python3-libdnf5
+  - dnf-plugins-core
+  - gnupg2
+  - wireguard-tools
+  - bind-utils
+  - NetworkManager
+  - libXScrnSaver
+  - pcsc-tools
+  - opensc
+  - pcsc-lite
+
+vscode_extensions:
+  - ms-azuretools.vscode-docker
+  - hediet.vscode-drawio
+  - eamodio.gitlens
+  - hashicorp.terraform
+  - wholroyd.jinja
+  - ms-python.black-formatter
+  - ms-python.isort
+  - ms-python.vscode-pylance
+  - ms-python.python
+  - ms-python.debugpy
+  - ms-python.mypy-type-checker
+  - ms-vscode-remote.remote-ssh
+  - ms-vscode-remote.remote-containers
+  - ms-vscode.remote-repositories
+  - esbenp.prettier-vscode
+  - redhat.vscode-yaml
+  - redhat.ansible
+  - foxundermoon.shell-format
+  - pkief.material-icon-theme
+  - shd101wyy.markdown-preview-enhanced
+  - ms-vscode.makefile-tools
+
+mattermost_deb_script: "https://deb.packages.mattermost.com/setup-repo.sh"
+mattermost_rpm: "https://releases.mattermost.com/desktop/5.11.0/mattermost-desktop-5.11.0-linux-x86_64.rpm"

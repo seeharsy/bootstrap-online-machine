@@ -1,0 +1,48 @@
+---
+- name: Set user var
+  ansible.builtin.include_tasks: set_user_vars.yml
+  tags:
+    - always
+
+- name: Install packages and dependencies
+  ansible.builtin.include_tasks: install_packages.yml
+  tags:
+    - always
+
+- name: Install docker-ce
+  become: true
+  ansible.builtin.import_role:
+    name: geerlingguy.docker
+    vars_from: main.yml
+  tags:
+    - docker
+
+- name: Install Yubico Auth App
+  ansible.builtin.include_tasks: install_yubico.yml
+  tags:
+    - yubico
+
+- name: Install VS Code
+  ansible.builtin.include_tasks: install_vscode.yml
+  tags:
+    - vscode
+
+- name: Install VS Code Extensions
+  ansible.builtin.include_tasks: install_vscode_extensions.yml
+  tags:
+    - vscode
+
+- name: Install Mattermost
+  ansible.builtin.include_tasks: install_mattermost.yml
+  tags:
+    - mattermost
+
+- name: Install Chrome, Firefox and Chromium
+  ansible.builtin.include_tasks: install_browsers.yml
+  tags:
+    - browsers
+
+- name: Install 1Password app and 1password-cli
+  ansible.builtin.include_tasks: install_1password.yml
+  tags:
+    - 1password

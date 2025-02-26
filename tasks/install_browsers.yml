@@ -1,0 +1,63 @@
+---
+- name: Install browsers (Debian-based)
+  become: true
+  block:
+    - name: Download Chrome package
+      get_url:
+        url: https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+        dest: /tmp/google-chrome.deb
+
+    - name: Install Chrome
+      apt:
+        deb: /tmp/google-chrome.deb
+
+    - name: Install Firefox
+      apt:
+        name: firefox
+        state: present
+
+    - name: Install Chromium
+      apt:
+        name: chromium
+        state: present
+  when: ansible_os_family == "Debian"
+  tags:
+    - always
+
+- name: Install browsers (Fedora-based)
+  become: true
+  block:
+    - name: Download Chrome package
+      get_url:
+        url: https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+        dest: /tmp/google-chrome.rpm
+
+    - name: Install Chrome
+      dnf:
+        name: /tmp/google-chrome.rpm
+        state: present
+        disable_gpg_check: true
+
+    - name: Install Firefox
+      dnf:
+        name: firefox
+        state: present
+
+    - name: Install Chromium
+      dnf:
+        name: chromium
+        state: present
+  when: ansible_os_family == "RedHat"
+  tags:
+    - always
+
+- name: Remove Chrome .deb/.rpm
+  become: true
+  file:
+    path: "/tmp/google-chrome.{{ item }}"
+    state: absent
+  loop:
+    - deb
+    - rpm
+  tags:
+    - always

@@ -1,0 +1,56 @@
+---
+- name: Install required dependencies (Debian-based)
+  become: true
+  apt:
+    name: "{{ packages_debian }}"
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+  tags:
+    - always
+
+# dnf module unable to execute without this package
+# installed on Fedora 40.
+- name: Install python3-libdnf5
+  become: true
+  shell:
+    cmd: dnf install python3-libdnf5 -y
+  when: ansible_os_family == "RedHat"
+  tags:
+    - always
+
+- name: Install required dependencies (Fedora-based)
+  become: true
+  dnf:
+    name: "{{ packages_fedora }}"
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "RedHat"
+  tags:
+    - always
+
+- name: Install common packages
+  become: true
+  package:
+    name: "{{ packages_common }}"
+    state: present
+  tags:
+    - always
+
+- name: Upgrade all packages (Fedora based)
+  become: true
+  dnf:
+    name: "*"
+    state: latest
+  when: ansible_os_family == "RedHat"
+  tags:
+    - always
+
+- name: Upgrade all packages (Debian based)
+  become: true
+  apt:
+    name: "*"
+    state: latest
+  when: ansible_os_family == "Debian"
+  tags:
+    - always

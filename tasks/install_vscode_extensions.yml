@@ -1,0 +1,8 @@
+---
+- name: Install VS Code extensions
+  shell: "code --install-extension {{ item }} --force"
+  loop: "{{ vscode_extensions }}"
+  changed_when: false
+  ignore_errors: yes  # Prevent failures if VS Code isn't installed or the extension is unavailable
+  tags:
+    - always

@@ -1,0 +1,17 @@
+---
+- block:
+  - name: Get host user
+    ansible.builtin.shell:
+      cmd: whoami
+    register: user
+
+  - name: Set user variables
+    ansible.builtin.set_fact:
+      host_user: "{{ user.stdout }}"
+
+  - name: Show results
+    debug:
+      msg:
+        - "Default Profile Name: {{ host_user }}"
+  tags:
+    - always

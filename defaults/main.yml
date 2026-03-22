@@ -38,6 +38,7 @@ packages_debian:
   - wireguard
   - network-manager
   - pcscd
+  - pass-extension-otp
 
 packages_fedora:
   - python3-libdnf5
@@ -50,6 +51,7 @@ packages_fedora:
   - pcsc-tools
   - opensc
   - pcsc-lite
+  - pass-otp
 
 vscode_extensions:
   - ms-azuretools.vscode-docker

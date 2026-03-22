@@ -60,3 +60,152 @@
         path: /tmp/google-chrome.rpm
         state: absent
   when: ansible_os_family == "RedHat"
+
+# Browserpass CE - browser extension for pass password manager.
+# Requires the browserpass-native host app to communicate with pass.
+- name: Get latest Browserpass native release info
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/browserpass/browserpass-native/releases/latest
+    return_content: true
+  register: browserpass_release
+
+- name: Set Browserpass version fact
+  ansible.builtin.set_fact:
+    browserpass_version: "{{ browserpass_release.json.tag_name | regex_replace('^v', '') }}"
+
+- name: Check if Browserpass native is already installed
+  ansible.builtin.stat:
+    path: /usr/lib/browserpass/browserpass
+  register: browserpass_installed
+
+- name: Install Browserpass native (Debian-based)
+  become: true
+  block:
+    - name: Set Browserpass .deb download URL
+      ansible.builtin.set_fact:
+        browserpass_deb_url: "{{ browserpass_release.json.assets | selectattr('name', 'search', apt_arch + '\\.deb') | map(attribute='browser_download_url') | first }}"
+
+    - name: Download Browserpass native .deb
+      ansible.builtin.get_url:
+        url: "{{ browserpass_deb_url }}"
+        dest: "/tmp/browserpass_{{ browserpass_version }}_{{ apt_arch }}.deb"
+
+    - name: Install Browserpass native
+      ansible.builtin.apt:
+        deb: "/tmp/browserpass_{{ browserpass_version }}_{{ apt_arch }}.deb"
+
+    - name: Remove Browserpass .deb
+      ansible.builtin.file:
+        path: "/tmp/browserpass_{{ browserpass_version }}_{{ apt_arch }}.deb"
+        state: absent
+  when: ansible_os_family == "Debian" and not browserpass_installed.stat.exists
+
+- name: Install Browserpass native (Fedora-based)
+  become: true
+  block:
+    - name: Set Browserpass .rpm download URL
+      ansible.builtin.set_fact:
+        browserpass_rpm_url: "{{ browserpass_release.json.assets | selectattr('name', 'search', ansible_architecture + '\\.rpm') | map(attribute='browser_download_url') | first }}"
+
+    - name: Download Browserpass native .rpm
+      ansible.builtin.get_url:
+        url: "{{ browserpass_rpm_url }}"
+        dest: "/tmp/browserpass-{{ browserpass_version }}.{{ ansible_architecture }}.rpm"
+
+    - name: Install Browserpass native
+      ansible.builtin.dnf:
+        name: "/tmp/browserpass-{{ browserpass_version }}.{{ ansible_architecture }}.rpm"
+        state: present
+
+    - name: Remove Browserpass .rpm
+      ansible.builtin.file:
+        path: "/tmp/browserpass-{{ browserpass_version }}.{{ ansible_architecture }}.rpm"
+        state: absent
+  when: ansible_os_family == "RedHat" and not browserpass_installed.stat.exists
+
+- name: Configure Firefox Browserpass extension policy
+  become: true
+  block:
+    - name: Create Firefox policies directory
+      ansible.builtin.file:
+        path: /etc/firefox/policies
+        state: directory
+        mode: '0755'
+
+    - name: Force-install Browserpass Firefox extension
+      ansible.builtin.copy:
+        dest: /etc/firefox/policies/policies.json
+        mode: '0644'
+        content: |
+          {
+            "policies": {
+              "ExtensionSettings": {
+                "browserpass@maximbaz.com": {
+                  "installation_mode": "force_installed",
+                  "install_url": "https://addons.mozilla.org/firefox/downloads/latest/browserpass-ce/latest.xpi"
+                }
+              }
+            }
+          }
+
+- name: Configure Chrome Browserpass extension policy
+  become: true
+  block:
+    - name: Create Chrome managed policies directory
+      ansible.builtin.file:
+        path: /etc/opt/chrome/policies/managed
+        state: directory
+        mode: '0755'
+
+    - name: Force-install Browserpass Chrome extension
+      ansible.builtin.copy:
+        dest: /etc/opt/chrome/policies/managed/browserpass.json
+        mode: '0644'
+        content: |
+          {
+            "ExtensionInstallForcelist": [
+              "naepdomgkenhinolocfifgehidddafch;https://clients2.google.com/service/update2/crx"
+            ]
+          }
+
+- name: Configure Chromium Browserpass extension policy (Debian-based)
+  become: true
+  block:
+    - name: Create Chromium managed policies directory
+      ansible.builtin.file:
+        path: /etc/chromium-browser/policies/managed
+        state: directory
+        mode: '0755'
+
+    - name: Force-install Browserpass Chromium extension
+      ansible.builtin.copy:
+        dest: /etc/chromium-browser/policies/managed/browserpass.json
+        mode: '0644'
+        content: |
+          {
+            "ExtensionInstallForcelist": [
+              "naepdomgkenhinolocfifgehidddafch;https://clients2.google.com/service/update2/crx"
+            ]
+          }
+  when: ansible_os_family == "Debian"
+
+- name: Configure Chromium Browserpass extension policy (Fedora-based)
+  become: true
+  block:
+    - name: Create Chromium managed policies directory
+      ansible.builtin.file:
+        path: /etc/chromium/policies/managed
+        state: directory
+        mode: '0755'
+
+    - name: Force-install Browserpass Chromium extension
+      ansible.builtin.copy:
+        dest: /etc/chromium/policies/managed/browserpass.json
+        mode: '0644'
+        content: |
+          {
+            "ExtensionInstallForcelist": [
+              "naepdomgkenhinolocfifgehidddafch;https://clients2.google.com/service/update2/crx"
+            ]
+          }
+  when: ansible_os_family == "RedHat"

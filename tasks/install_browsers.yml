@@ -3,61 +3,60 @@
   become: true
   block:
     - name: Download Chrome package
-      get_url:
-        url: https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+      ansible.builtin.get_url:
+        url: "https://dl.google.com/linux/direct/google-chrome-stable_current_{{ apt_arch }}.deb"
         dest: /tmp/google-chrome.deb
 
     - name: Install Chrome
-      apt:
+      ansible.builtin.apt:
         deb: /tmp/google-chrome.deb
 
     - name: Install Firefox
-      apt:
+      ansible.builtin.apt:
         name: firefox
         state: present
 
     - name: Install Chromium
-      apt:
+      ansible.builtin.apt:
         name: chromium
         state: present
+
+    - name: Remove Chrome .deb
+      ansible.builtin.file:
+        path: /tmp/google-chrome.deb
+        state: absent
   when: ansible_os_family == "Debian"
-  tags:
-    - always
 
 - name: Install browsers (Fedora-based)
   become: true
   block:
+    - name: Import Google GPG key
+      ansible.builtin.rpm_key:
+        key: https://dl.google.com/linux/linux_signing_key.pub
+        state: present
+
     - name: Download Chrome package
-      get_url:
-        url: https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+      ansible.builtin.get_url:
+        url: "https://dl.google.com/linux/direct/google-chrome-stable_current_{{ ansible_architecture }}.rpm"
         dest: /tmp/google-chrome.rpm
 
     - name: Install Chrome
-      dnf:
+      ansible.builtin.dnf:
         name: /tmp/google-chrome.rpm
         state: present
-        disable_gpg_check: true
 
     - name: Install Firefox
-      dnf:
+      ansible.builtin.dnf:
         name: firefox
         state: present
 
     - name: Install Chromium
-      dnf:
+      ansible.builtin.dnf:
         name: chromium
         state: present
-  when: ansible_os_family == "RedHat"
-  tags:
-    - always
 
-- name: Remove Chrome .deb/.rpm
-  become: true
-  file:
-    path: "/tmp/google-chrome.{{ item }}"
-    state: absent
-  loop:
-    - deb
-    - rpm
-  tags:
-    - always
+    - name: Remove Chrome .rpm
+      ansible.builtin.file:
+        path: /tmp/google-chrome.rpm
+        state: absent
+  when: ansible_os_family == "RedHat"

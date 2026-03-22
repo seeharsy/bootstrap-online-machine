@@ -1,56 +1,57 @@
 ---
 - name: Install required dependencies (Debian-based)
   become: true
-  apt:
+  ansible.builtin.apt:
     name: "{{ packages_debian }}"
     state: present
-    update_cache: yes
+    update_cache: true
   when: ansible_os_family == "Debian"
-  tags:
-    - always
 
-# dnf module unable to execute without this package
-# installed on Fedora 40.
-- name: Install python3-libdnf5
-  become: true
-  shell:
-    cmd: dnf install python3-libdnf5 -y
+# dnf module unable to execute without this package on Fedora 40+
+- name: Check if python3-libdnf5 is installed
+  ansible.builtin.command: rpm -q python3-libdnf5
+  register: libdnf5_check
+  changed_when: false
+  failed_when: false
   when: ansible_os_family == "RedHat"
-  tags:
-    - always
+
+- name: Install python3-libdnf5 (dnf bootstrap)
+  become: true
+  ansible.builtin.command:
+    cmd: dnf install python3-libdnf5 -y
+  when: ansible_os_family == "RedHat" and libdnf5_check.rc != 0
+  changed_when: libdnf5_check.rc != 0
 
 - name: Install required dependencies (Fedora-based)
   become: true
-  dnf:
+  ansible.builtin.dnf:
     name: "{{ packages_fedora }}"
     state: present
-    update_cache: yes
+    update_cache: true
   when: ansible_os_family == "RedHat"
-  tags:
-    - always
 
 - name: Install common packages
   become: true
-  package:
+  ansible.builtin.package:
     name: "{{ packages_common }}"
     state: present
-  tags:
-    - always
 
-- name: Upgrade all packages (Fedora based)
+- name: Upgrade all packages (Debian-based)
   become: true
-  dnf:
+  ansible.builtin.apt:
+    upgrade: dist
+    update_cache: true
+  when: ansible_os_family == "Debian"
+  tags:
+    - upgrade
+    - never
+
+- name: Upgrade all packages (Fedora-based)
+  become: true
+  ansible.builtin.dnf:
     name: "*"
     state: latest
   when: ansible_os_family == "RedHat"
   tags:
-    - always
-
-- name: Upgrade all packages (Debian based)
-  become: true
-  apt:
-    name: "*"
-    state: latest
-  when: ansible_os_family == "Debian"
-  tags:
-    - always
+    - upgrade
+    - never

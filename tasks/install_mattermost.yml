@@ -1,8 +1,18 @@
 ---
-- name: Install Mattermost (Debian based)
+- name: Get latest Mattermost release info
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/mattermost/desktop/releases/latest
+    return_content: true
+  register: mattermost_release
+
+- name: Set Mattermost version fact
+  ansible.builtin.set_fact:
+    mattermost_version: "{{ mattermost_release.json.tag_name | regex_replace('^v', '') }}"
+
+- name: Install Mattermost (Debian-based)
   block:
     - name: Get Mattermost setup-repo.sh
-      get_url:
+      ansible.builtin.get_url:
         url: "{{ mattermost_deb_script }}"
         dest: "/tmp/setup-repo.sh"
         mode: '0755'
@@ -11,43 +21,42 @@
 
     - name: Run setup-repo.sh
       become: true
-      shell:
-        cmd: "UPDATE_GPG_KEY=yes /tmp/setup-repo.sh"
+      ansible.builtin.command:
+        cmd: "/tmp/setup-repo.sh"
+      environment:
+        UPDATE_GPG_KEY: "yes"
+      changed_when: true
 
     - name: Install Mattermost Desktop
       become: true
-      apt:
+      ansible.builtin.apt:
         name: mattermost-desktop
         state: present
 
     - name: Clean up setup-repo.sh
-      file:
+      ansible.builtin.file:
         path: "/tmp/setup-repo.sh"
         state: absent
   when: ansible_os_family == "Debian"
-  tags:
-    - always
 
 # Mattermost doesn't support automatic updates for .rpm
 # packages. Updates have to be done manually.
-- name: Install Mattermost (Fedora based)
+- name: Install Mattermost (Fedora-based)
   block:
     - name: Pull Mattermost .rpm
-      get_url:
-        url: "{{ mattermost_rpm }}"
-        dest: "/tmp/mattermost-desktop-5.11.0-linux-x86_64.rpm"
+      ansible.builtin.get_url:
+        url: "https://releases.mattermost.com/desktop/{{ mattermost_version }}/mattermost-desktop-{{ mattermost_version }}-linux-{{ ansible_architecture }}.rpm"
+        dest: "/tmp/mattermost-desktop-{{ mattermost_version }}-linux-{{ ansible_architecture }}.rpm"
 
-    - name: Dnf install .rpm
+    - name: Install Mattermost via dnf
       become: true
-      dnf:
-        name: "/tmp/mattermost-desktop-5.11.0-linux-x86_64.rpm"
+      ansible.builtin.dnf:
+        name: "/tmp/mattermost-desktop-{{ mattermost_version }}-linux-{{ ansible_architecture }}.rpm"
         state: present
         disable_gpg_check: true
 
     - name: Clean up rpm
-      file:
-        path: "/tmp/mattermost-desktop-5.11.0-linux-x86_64.rpm"
+      ansible.builtin.file:
+        path: "/tmp/mattermost-desktop-{{ mattermost_version }}-linux-{{ ansible_architecture }}.rpm"
         state: absent
   when: ansible_os_family == "RedHat"
-  tags:
-    - always

@@ -75,4 +75,3 @@ vscode_extensions:
   - ms-vscode.makefile-tools
 
 mattermost_deb_script: "https://deb.packages.mattermost.com/setup-repo.sh"
-mattermost_rpm: "https://releases.mattermost.com/desktop/5.11.0/mattermost-desktop-5.11.0-linux-x86_64.rpm"

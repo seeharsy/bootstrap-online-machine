@@ -1,17 +1,13 @@
 ---
-- block:
-  - name: Get host user
-    ansible.builtin.shell:
-      cmd: whoami
-    register: user
+- name: Set host user fact
+  ansible.builtin.set_fact:
+    host_user: "{{ ansible_user_id }}"
+  tags:
+    - always
 
-  - name: Set user variables
-    ansible.builtin.set_fact:
-      host_user: "{{ user.stdout }}"
-
-  - name: Show results
-    debug:
-      msg:
-        - "Default Profile Name: {{ host_user }}"
+- name: Set apt architecture fact
+  ansible.builtin.set_fact:
+    apt_arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else ('arm64' if ansible_architecture == 'aarch64' else ansible_architecture) }}"
+  when: ansible_os_family == "Debian"
   tags:
     - always

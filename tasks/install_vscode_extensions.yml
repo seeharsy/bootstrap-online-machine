@@ -1,8 +1,13 @@
 ---
-- name: Install VS Code extensions
-  shell: "code --install-extension {{ item }} --force"
-  loop: "{{ vscode_extensions }}"
+- name: Get installed VS Code extensions
+  ansible.builtin.command: code --list-extensions
+  register: installed_extensions
   changed_when: false
-  ignore_errors: yes  # Prevent failures if VS Code isn't installed or the extension is unavailable
-  tags:
-    - always
+  failed_when: false
+
+- name: Install VS Code extensions
+  ansible.builtin.command: "code --install-extension {{ item }}"
+  loop: "{{ vscode_extensions }}"
+  when: item not in installed_extensions.stdout_lines
+  changed_when: true
+  ignore_errors: true

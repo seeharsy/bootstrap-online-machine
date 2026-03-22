@@ -10,7 +10,8 @@ installed are:
 - Mattermost Desktop (latest version fetched automatically)
 - VS Code (and some useful extensions)
 - Yubico Authenticator (latest version fetched automatically)
-- Chrome, Firefox and Chromium browsers
+- Chrome, Firefox and Chromium browsers (with Browserpass CE extension)
+- pass-otp (OTP extension for pass)
 
 ## Requirements
 
@@ -63,7 +64,7 @@ utilities to install:
 | `vscode` | VS Code + extensions |
 | `mattermost` | Mattermost Desktop |
 | `yubico` | Yubico Authenticator |
-| `browsers` | Chrome, Firefox, Chromium |
+| `browsers` | Chrome, Firefox, Chromium + Browserpass CE native host and extension policy |
 | `1password` | 1Password app + CLI |
 | `upgrade` | Upgrade all system packages |
 

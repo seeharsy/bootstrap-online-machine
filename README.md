@@ -7,9 +7,9 @@ installed are:
 
 - Docker
 - 1Password
-- Mattermost Desktop
+- Mattermost Desktop (latest version fetched automatically)
 - VS Code (and some useful extensions)
-- Yubico Authenticator App
+- Yubico Authenticator (latest version fetched automatically)
 - Chrome, Firefox and Chromium browsers
 
 ## Requirements
@@ -21,39 +21,59 @@ installed are:
   - **Disclaimer:** Fedora 41 is currently not compatible and may
     not work as expected
 - If running this playbook locally, Ansible will need to be installed:
-  - For Debian-based distros, use `sudo apt install ansible-core`
-  - Otherwise on Fedora-based distros, use `sudo dnf install ansible-core`
+  - For Debian-based distros: `sudo apt install ansible-core`
+  - For Fedora-based distros: `sudo dnf install ansible-core`
 
 ## Role Variables
 
 A list of packages to be installed can be found in `defaults/main.yml`.
-This list can be added to as desired, but removal of any packages may cause
-issues with the installation of the utilities.
+This list can be added to as desired, but removal of packages may cause
+issues with the installation of the utilities listed above.
 
 ## Dependencies
 
-This playbook requires the following Ansible Galaxy role and collection to be
-installed:
+Install the required Ansible Galaxy role and collection before running
+the playbook:
 
-- `ansible-galaxy install geerlingguy.docker`
-- `ansible-galaxy collection install community.general`
+```bash
+ansible-galaxy install -r requirements.yml
+```
 
 ## Usage
 
-An example playbook has been included `configure_online_machine.yml`.
+- To run locally:
+  ```bash
+  ansible-playbook --connection=local -i 127.0.0.1, configure_online_laptop.yml -K
+  ```
+- To run against a remote host:
+  ```bash
+  ansible-playbook -i path/to/hosts/file configure_online_laptop.yml -K --limit desired_hosts
+  ```
 
-- To run this over a remote host: `ansible-playbook -i path/to/hosts/file configure_online_laptop.yml -K`
-  . Ensure you use `--limit` and select only the desired hosts.
-- To run this locally: `ansible-playbook --connection=local -i 127.0.0.1, configure_online_laptop.yml -K`
+The `-K` flag prompts for a privilege escalation password, required for package installation.
 
-Since the playbook handles installation of packages, the `-K` option is needed
-to pass a privilege escalation password.
+## Tags
 
-Ansible tags are being used to specify which of the utilities are being used.
-The common packages are always going to be installed and updated, but you can
-specify whether or not you want to install VS Code, Docker, Mattermost etc.
-by using `--tags=vscode,docker,mattermost`.
+Common packages are always installed. Use `--tags` to select which optional
+utilities to install:
+
+| Tag | Installs |
+|-----|----------|
+| `docker` | Docker CE |
+| `vscode` | VS Code + extensions |
+| `mattermost` | Mattermost Desktop |
+| `yubico` | Yubico Authenticator |
+| `browsers` | Chrome, Firefox, Chromium |
+| `1password` | 1Password app + CLI |
+| `upgrade` | Upgrade all system packages |
+
+Example — install only VS Code and Docker:
+```bash
+ansible-playbook --connection=local -i 127.0.0.1, configure_online_laptop.yml -K --tags=vscode,docker
+```
+
+The `upgrade` tag is opt-in and will not run unless explicitly specified.
 
 ## License
 
-BSD
+BSD-2-Clause

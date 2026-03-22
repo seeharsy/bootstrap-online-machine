@@ -1,17 +1,19 @@
 ---
-- name: Get latest version
+- name: Get latest Yubico release info
   uri:
     url: https://api.github.com/repos/Yubico/yubioath-flutter/releases/latest
     return_content: true
   register: json_response
-  tags:
-    - always
 
-- name: Set version fact
+- name: Set version and architecture facts
   set_fact:
-    latest_version: "{{ json_response.json.tag_name }}"
-  tags:
-    - always
+    yubico_version: "{{ json_response.json.tag_name }}"
+    yubico_arch: "{{ ansible_architecture }}"
+
+- name: Check if current version is already installed
+  stat:
+    path: "/opt/yubico/yubico-authenticator-{{ yubico_version }}-linux-{{ yubico_arch }}"
+  register: yubico_install_dir
 
 - name: Make yubico dir
   become: true
@@ -21,35 +23,46 @@
     owner: root
     group: root
     mode: '0755'
-  tags:
-    - always
 
-- name: Download latest Yubico App
+- name: Download Yubico Authenticator tarball
   become: true
   get_url:
-    url: https://developers.yubico.com/yubioath-flutter/Releases/yubico-authenticator-latest-linux.tar.gz
-    dest: /opt/yubico-authenticator-latest-linux.tar.gz
-  tags:
-    - always
+    url: "https://developers.yubico.com/yubioath-flutter/Releases/yubico-authenticator-{{ yubico_version }}-linux.tar.gz"
+    dest: "/opt/yubico-authenticator-{{ yubico_version }}-linux.tar.gz"
+  when: not yubico_install_dir.stat.exists
 
 - name: Extract Yubico tarball
   become: true
   unarchive:
-    src: /opt/yubico-authenticator-latest-linux.tar.gz
+    src: "/opt/yubico-authenticator-{{ yubico_version }}-linux.tar.gz"
     dest: /opt/yubico
     remote_src: true
-  tags:
-    - always
+  when: not yubico_install_dir.stat.exists
 
 - name: Run desktop integration script
-  shell: "/opt/yubico/yubico-authenticator-{{ latest_version }}-linux/desktop_integration.sh --install"
-  tags:
-    - always
+  become: true
+  command: "/opt/yubico/yubico-authenticator-{{ yubico_version }}-linux-{{ yubico_arch }}/desktop_integration.sh --install"
+  when: not yubico_install_dir.stat.exists
+  changed_when: true
 
-- name: Clean up .tar.gz
+- name: Clean up tarball
   become: true
   file:
-    path: /opt/yubico-authenticator-latest-linux.tar.gz
+    path: "/opt/yubico-authenticator-{{ yubico_version }}-linux.tar.gz"
     state: absent
-  tags:
-    - always
+
+- name: Find old Yubico install directories
+  become: true
+  find:
+    paths: /opt/yubico
+    file_type: directory
+    patterns: "yubico-authenticator-*"
+    excludes: "yubico-authenticator-{{ yubico_version }}-linux-{{ yubico_arch }}"
+  register: old_yubico_dirs
+
+- name: Remove old Yubico install directories
+  become: true
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ old_yubico_dirs.files }}"

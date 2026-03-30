@@ -5,14 +5,14 @@
     return_content: true
   register: json_response
 
-- name: Set version and architecture facts
+- name: Set version fact
   set_fact:
-    yubico_version: "{{ json_response.json.tag_name }}"
-    yubico_arch: "{{ ansible_architecture }}"
+    yubico_version: "{{ json_response.json.tag_name | regex_replace('^v', '') }}"
+    yubico_tarball_url: "{{ json_response.json.assets | selectattr('name', 'search', 'linux.*\\.tar\\.gz') | map(attribute='browser_download_url') | first }}"
 
 - name: Check if current version is already installed
   stat:
-    path: "/opt/yubico/yubico-authenticator-{{ yubico_version }}-linux-{{ yubico_arch }}"
+    path: "/opt/yubico/yubico-authenticator-{{ yubico_version }}-linux"
   register: yubico_install_dir
 
 - name: Make yubico dir
@@ -27,7 +27,7 @@
 - name: Download Yubico Authenticator tarball
   become: true
   get_url:
-    url: "https://developers.yubico.com/yubioath-flutter/Releases/yubico-authenticator-{{ yubico_version }}-linux.tar.gz"
+    url: "{{ yubico_tarball_url }}"
     dest: "/opt/yubico-authenticator-{{ yubico_version }}-linux.tar.gz"
   when: not yubico_install_dir.stat.exists
 
@@ -41,7 +41,7 @@
 
 - name: Run desktop integration script
   become: true
-  command: "/opt/yubico/yubico-authenticator-{{ yubico_version }}-linux-{{ yubico_arch }}/desktop_integration.sh --install"
+  command: "/opt/yubico/yubico-authenticator-{{ yubico_version }}-linux/desktop_integration.sh --install"
   when: not yubico_install_dir.stat.exists
   changed_when: true
 
@@ -57,7 +57,7 @@
     paths: /opt/yubico
     file_type: directory
     patterns: "yubico-authenticator-*"
-    excludes: "yubico-authenticator-{{ yubico_version }}-linux-{{ yubico_arch }}"
+    excludes: "yubico-authenticator-{{ yubico_version }}-linux"
   register: old_yubico_dirs
 
 - name: Remove old Yubico install directories

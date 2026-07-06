@@ -1,0 +1,14 @@
+---
+extends: default
+
+rules:
+  # Long apt repo strings and Jinja architecture expressions are unavoidable,
+  # so treat over-length lines as advisory rather than blocking.
+  line-length:
+    max: 120
+    level: warning
+  document-start:
+    present: true
+  truthy:
+    allowed-values: ['true', 'false']
+    check-keys: false

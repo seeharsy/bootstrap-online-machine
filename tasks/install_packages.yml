@@ -1,57 +1,29 @@
 ---
-- name: Install required dependencies (Debian-based)
+- name: Install required dependencies (apt)
   become: true
   ansible.builtin.apt:
     name: "{{ packages_debian }}"
     state: present
     update_cache: true
-  when: ansible_os_family == "Debian"
-
-# dnf module unable to execute without this package on Fedora 40+
-- name: Check if python3-libdnf5 is installed
-  ansible.builtin.command: rpm -q python3-libdnf5
-  register: libdnf5_check
-  changed_when: false
-  failed_when: false
-  when: ansible_os_family == "RedHat"
-
-- name: Install python3-libdnf5 (dnf bootstrap)
-  become: true
-  ansible.builtin.command:
-    cmd: dnf install python3-libdnf5 -y
-  when: ansible_os_family == "RedHat" and libdnf5_check.rc != 0
-  changed_when: libdnf5_check.rc != 0
-
-- name: Install required dependencies (Fedora-based)
-  become: true
-  ansible.builtin.dnf:
-    name: "{{ packages_fedora }}"
-    state: present
-    update_cache: true
-  when: ansible_os_family == "RedHat"
 
 - name: Install common packages
   become: true
-  ansible.builtin.package:
+  ansible.builtin.apt:
     name: "{{ packages_common }}"
     state: present
 
-- name: Upgrade all packages (Debian-based)
+- name: Ensure snapd is running
+  become: true
+  ansible.builtin.systemd:
+    name: snapd
+    state: started
+    enabled: true
+
+- name: Upgrade all packages (apt)
   become: true
   ansible.builtin.apt:
     upgrade: dist
     update_cache: true
-  when: ansible_os_family == "Debian"
-  tags:
-    - upgrade
-    - never
-
-- name: Upgrade all packages (Fedora-based)
-  become: true
-  ansible.builtin.dnf:
-    name: "*"
-    state: latest
-  when: ansible_os_family == "RedHat"
   tags:
     - upgrade
     - never

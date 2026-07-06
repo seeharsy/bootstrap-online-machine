@@ -1,6 +1,7 @@
+---
 galaxy_info:
   author: seeharsy
-  description: Bootstrap a developer workstation on Ubuntu or Fedora
+  description: Bootstrap a developer workstation on Ubuntu
   license: BSD-2-Clause
   min_ansible_version: "2.10"
   galaxy_tags:
@@ -9,6 +10,5 @@ galaxy_info:
     - developer
     - bootstrap
     - ubuntu
-    - fedora
 
 dependencies: []

@@ -1,0 +1,36 @@
+---
+- name: Create repos directory
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/repos"
+    state: directory
+    mode: '0755'
+
+- name: Ensure Downloads directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/Downloads"
+    state: directory
+    mode: '0755'
+
+# Browserpass native must be installed manually from this tarball; the role only
+# stages it in ~/Downloads (native messaging setup is left to the user).
+- name: Get latest Browserpass native release info
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/browserpass/browserpass-native/releases/latest
+    return_content: true
+  register: browserpass_release
+
+- name: Set Browserpass tarball URL
+  ansible.builtin.set_fact:
+    browserpass_tarball_url: >-
+      {{ browserpass_release.json.assets
+         | selectattr('name', 'search', 'browserpass-' ~ browserpass_arch ~ '-.*\\.tar\\.gz$')
+         | rejectattr('name', 'search', '\\.asc$')
+         | map(attribute='browser_download_url') | first }}
+  vars:
+    browserpass_arch: "{{ 'linux64' if apt_arch == 'amd64' else ('arm64' if apt_arch == 'arm64' else 'arm') }}"
+
+- name: Download Browserpass native tarball to Downloads
+  ansible.builtin.get_url:
+    url: "{{ browserpass_tarball_url }}"
+    dest: "{{ ansible_env.HOME }}/Downloads/{{ browserpass_tarball_url | basename }}"
+    mode: '0644'

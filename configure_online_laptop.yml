@@ -1,0 +1,8 @@
+---
+- name: Begin Bootstrap Role
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Import bootstrap role
+      ansible.builtin.import_role:
+        name: bootstrap-online-machine

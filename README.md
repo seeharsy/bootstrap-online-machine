@@ -1,29 +1,26 @@
-# Configure New Ubuntu or Fedora Host
+# Configure New Ubuntu Host
 
 This playbook automates the installation of a variety of useful
 packages and utilities for a freshly installed instance of Ubuntu
-Desktop or Fedora Workstation. The list of optional utilities
-installed are:
+Desktop. The list of optional utilities installed are:
 
 - Docker
-- 1Password
-- Mattermost Desktop (latest version fetched automatically)
-- VS Code (and some useful extensions)
+- 1Password (desktop app via snap, CLI via apt)
+- Mattermost Desktop (snap)
+- VS Code (snap, and some useful extensions)
 - Yubico Authenticator (latest version fetched automatically)
-- Chrome, Firefox and Chromium browsers (with Browserpass CE extension)
+- Chrome (deb), Firefox and Chromium browsers (snaps)
 - pass-otp (OTP extension for pass)
+- Browserpass CE native tarball staged in `~/Downloads` (manual install)
 
 ## Requirements
 
 - Ensure the host has access to the internet, unrestricted by a
   firewall or proxy
-- This playbook has only been tested on Ubuntu and Fedora distros.
-  All other distros may encounter issues when running this playbook
-  - **Disclaimer:** Fedora 41 is currently not compatible and may
-    not work as expected
+- This playbook targets Ubuntu Desktop. Other distros are not
+  supported and may encounter issues when running this playbook
 - If running this playbook locally, Ansible will need to be installed:
-  - For Debian-based distros: `sudo apt install ansible-core`
-  - For Fedora-based distros: `sudo dnf install ansible-core`
+  `sudo apt install ansible-core`
 
 ## Role Variables
 
@@ -64,8 +61,9 @@ utilities to install:
 | `vscode` | VS Code + extensions |
 | `mattermost` | Mattermost Desktop |
 | `yubico` | Yubico Authenticator |
-| `browsers` | Chrome, Firefox, Chromium + Browserpass CE native host and extension policy |
-| `1password` | 1Password app + CLI |
+| `browsers` | Chrome (deb), Firefox and Chromium (snaps) |
+| `1password` | 1Password app (snap) + CLI (apt) |
+| `user_setup` | Create `~/repos` and stage the Browserpass CE tarball in `~/Downloads` |
 | `upgrade` | Upgrade all system packages |
 
 Example — install only VS Code and Docker:

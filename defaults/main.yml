@@ -39,19 +39,7 @@ packages_debian:
   - network-manager
   - pcscd
   - pass-extension-otp
-
-packages_fedora:
-  - python3-libdnf5
-  - dnf-plugins-core
-  - gnupg2
-  - wireguard-tools
-  - bind-utils
-  - NetworkManager
-  - libXScrnSaver
-  - pcsc-tools
-  - opensc
-  - pcsc-lite
-  - pass-otp
+  - snapd
 
 vscode_extensions:
   - ms-azuretools.vscode-docker
@@ -75,5 +63,3 @@ vscode_extensions:
   - pkief.material-icon-theme
   - shd101wyy.markdown-preview-enhanced
   - ms-vscode.makefile-tools
-
-mattermost_deb_script: "https://deb.packages.mattermost.com/setup-repo.sh"

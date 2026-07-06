@@ -1,43 +1,7 @@
 ---
-- name: Install VS Code (Debian-based)
+- name: Install VS Code (snap)
   become: true
-  block:
-    - name: Import Microsoft GPG key
-      ansible.builtin.get_url:
-        url: "https://packages.microsoft.com/keys/microsoft.asc"
-        dest: /etc/apt/trusted.gpg.d/microsoft.asc
-
-    - name: Add VS Code repository
-      ansible.builtin.apt_repository:
-        repo: "deb [arch={{ apt_arch }}] https://packages.microsoft.com/repos/code stable main"
-        filename: vscode
-
-    - name: Install VS Code
-      ansible.builtin.apt:
-        name: code
-        state: present
-        update_cache: true
-  when: ansible_os_family == "Debian"
-
-- name: Install VS Code (Fedora-based)
-  become: true
-  block:
-    - name: Import Microsoft GPG key
-      ansible.builtin.rpm_key:
-        key: "https://packages.microsoft.com/keys/microsoft.asc"
-        state: present
-
-    - name: Add VS Code repository
-      ansible.builtin.yum_repository:
-        name: vscode
-        description: Visual Studio Code
-        baseurl: https://packages.microsoft.com/yumrepos/vscode
-        gpgcheck: true
-        enabled: true
-        gpgkey: https://packages.microsoft.com/keys/microsoft.asc
-
-    - name: Install VS Code
-      ansible.builtin.dnf:
-        name: code
-        state: present
-  when: ansible_os_family == "RedHat"
+  community.general.snap:
+    name: code
+    classic: true
+    state: present

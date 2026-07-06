@@ -46,3 +46,8 @@
   ansible.builtin.include_tasks: install_1password.yml
   tags:
     - 1password
+
+- name: Set up user directories and staged downloads
+  ansible.builtin.include_tasks: user_setup.yml
+  tags:
+    - user_setup
